@@ -26,6 +26,10 @@ def parse_ticket(ticket_text):
         "issue_summary": ticket_text[:200],
         "severity": "high" if "error" in ticket_text.lower() or "500" in ticket_text else "medium",
         "urgency": "high" if any(k in ticket_text.lower() for k in ["immediately", "asap", "urgent"]) else "medium",
+        "customer_context": {
+            "customer_type": "unknown",
+            "age_group": "unknown"
+        },
         "channel": "portal",
         "status": "open",
         "confidence": 0.75
@@ -42,11 +46,13 @@ def health():
 @app.route('/parse-ticket', methods=['POST'])
 def parse_api():
     data = request.get_json() or {}
-    text = data.get("text", "")
+    text = data.get("ticket_text", "")
     if not text:
         return jsonify({"error": "text required"}), 400
     return jsonify(parse_ticket(text))
 
 if __name__ == "__main__":
     if load_model():
+        app.run(host="0.0.0.0", port=5000, debug=False)
+
         app.run(host="0.0.0.0", port=5000, debug=False)
